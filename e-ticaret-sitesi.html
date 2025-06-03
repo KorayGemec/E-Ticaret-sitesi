@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Ticaret Sitesi - Telefonlar</title>
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/babel-standalone@6.26.0/babel.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Filtreler için özelleştirilmiş CSS */
+        .filter-panel {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #93c5fd;
+        }
+
+        .filter-panel summary {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e40af;
+            padding: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .filter-panel summary:hover {
+            background: #bfdbfe;
+            border-radius: 8px;
+        }
+
+        .filter-panel label {
+            color: #1e3a8a;
+            font-weight: 500;
+            padding: 5px 10px;
+            display: block;
+            transition: color 0.2s ease;
+        }
+
+        .filter-panel input:checked+label {
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        /* Telefonlar için özelleştirilmiş CSS */
+        .product-card {
+            background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .product-card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+
+        .product-card p {
+            background: #f1f5f9;
+            padding: 5px 10px;
+            border-radius: 6px;
+            margin: 5px 0;
+            color: #475569;
+            font-size: 0.95rem;
+        }
+
+        .product-card .price {
+            color: #dc2626;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        /* Sepete Ekle butonu animasyonu */
+        .add-to-cart-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .add-to-cart-btn:hover {
+            background: #2563eb;
+        }
+
+        .add-to-cart-btn:active {
+            transform: scale(0.95);
+            background: #1d4ed8;
+        }
+
+        /* Sepet ve Sil butonu */
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            margin: 5px 0;
+        }
+
+        .remove-btn {
+            background: #ef4444;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            transition: background 0.2s ease;
+        }
+
+        .remove-btn:hover {
+            background: #dc2626;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { createRoot } = ReactDOM;
+
+        // Örnek telefon verileri (21 telefon)
+        const initialProducts = [
+            { id: 1, name: "Oppo Reno 8", brand: "Oppo", price: 12999, ram: 8, storage: 256, year: 2022, refreshRate: 90, camera: 50, chipset: "MediaTek Dimensity 1300", battery: 4500, image: "https://via.placeholder.com/150" },
+            { id: 2, name: "Oppo Find X5 Pro", brand: "Oppo", price: 24999, ram: 12, storage: 512, year: 2022, refreshRate: 120, camera: 50, chipset: "Snapdragon 8 Gen 1", battery: 5000, image: "https://via.placeholder.com/150" },
+            { id: 3, name: "Oppo A77", brand: "Oppo", price: 6999, ram: 4, storage: 128, year: 2022, refreshRate: 60, camera: 48, chipset: "MediaTek Helio G35", battery: 5000, image: "https://via.placeholder.com/150" },
+            { id: 4, name: "Oppo Reno 10", brand: "Oppo", price: 15999, ram: 8, storage: 256, year: 2023, refreshRate: 120, camera: 64, chipset: "Snapdragon 778G", battery: 4600, image: "https://via.placeholder.com/150" },
+            { id: 5, name: "Huawei P60 Pro", brand: "Huawei", price: 22999, ram: 12, storage: 512, year: 2023, refreshRate: 120, camera: 48, chipset: "Snapdragon 8+ Gen 1", battery: 4815, image: "https://via.placeholder.com/150" },
+            { id: 6, name: "Huawei Mate 50", brand: "Huawei", price: 19999, ram: 8, storage: 256, year: 2022, refreshRate: 90, camera: 50, chipset: "Snapdragon 8+ Gen 1", battery: 4460, image: "https://via.placeholder.com/150" },
+            { id: 7, name: "Huawei Nova 10", brand: "Huawei", price: 10999, ram: 8, storage: 128, year: 2022, refreshRate: 120, camera: 50, chipset: "Snapdragon 778G", battery: 4000, image: "https://via.placeholder.com/150" },
+            { id: 8, name: "Huawei Y70", brand: "Huawei", price: 5999, ram: 4, storage: 64, year: 2022, refreshRate: 60, camera: 48, chipset: "Snapdragon 680", battery: 6000, image: "https://via.placeholder.com/150" },
+            { id: 9, name: "Honor 90", brand: "Honor", price: 13999, ram: 8, storage: 256, year: 2023, refreshRate: 120, camera: 200, chipset: "Snapdragon 7 Gen 1", battery: 5000, image: "https://via.placeholder.com/150" },
+            { id: 10, name: "Honor X9a", brand: "Honor", price: 8999, ram: 6, storage: 128, year: 2023, refreshRate: 120, camera: 64, chipset: "Snapdragon 695", battery: 5100, image: "https://via.placeholder.com/150" },
+            { id: 11, name: "Honor Magic 5 Pro", brand: "Honor", price: 25999, ram: 12, storage: 512, year: 2023, refreshRate: 120, camera: 50, chipset: "Snapdragon 8 Gen 2", battery: 5450, image: "https://via.placeholder.com/150" },
+            { id: 12, name: "Honor 70", brand: "Honor", price: 11999, ram: 8, storage: 256, year: 2022, refreshRate: 120, camera: 54, chipset: "Snapdragon 778G+", battery: 4800, image: "https://via.placeholder.com/150" },
+            { id: 13, name: "realme GT 3", brand: "realme", price: 17999, ram: 12, storage: 256, year: 2023, refreshRate: 144, camera: 50, chipset: "Snapdragon 8+ Gen 1", battery: 4600, image: "https://via.placeholder.com/150" },
+            { id: 14, name: "realme 11 Pro", brand: "realme", price: 10999, ram: 8, storage: 256, year: 2023, refreshRate: 120, camera: 100, chipset: "MediaTek Dimensity 7050", battery: 5000, image: "https://via.placeholder.com/150" },
+            { id: 15, name: "realme C55", brand: "realme", price: 6999, ram: 6, storage: 128, year: 2023, refreshRate: 90, camera: 64, chipset: "MediaTek Helio G88", battery: 5000, image: "https://via.placeholder.com/150" },
+            { id: 16, name: "realme Narzo 60", brand: "realme", price: 8999, ram: 8, storage: 128, year: 2023, refreshRate: 90, camera: 64, chipset: "MediaTek Dimensity 6020", battery: 5000, image: "https://via.placeholder.com/150" },
+            { id: 17, name: "Reeder S19 Max Pro", brand: "Reeder", price: 4999, ram: 4, storage: 64, year: 2022, refreshRate: 60, camera: 13, chipset: "MediaTek Helio A22", battery: 4000, image: "https://via.placeholder.com/150" },
+            { id: 18, name: "Reeder P13 Blue", brand: "Reeder", price: 3999, ram: 3, storage: 32, year: 2021, refreshRate: 60, camera: 8, chipset: "MediaTek MT6739", battery: 4000, image: "https://via.placeholder.com/150" },
+            { id: 19, name: "Reeder S23 Pro", brand: "Reeder", price: 5999, ram: 4, storage: 128, year: 2023, refreshRate: 60, camera: 16, chipset: "MediaTek Helio G37", battery: 5000, image: "https://via.placeholder.com/150" },
+            { id: 20, name: "Reeder S19 Max", brand: "Reeder", price: 4499, ram: 4, storage: 64, year: 2022, refreshRate: 60, camera: 13, chipset: "MediaTek Helio A22", battery: 4000, image: "https://via.placeholder.com/150" },
+            { id: 21, name: "Oppo A58", brand: "Oppo", price: 7999, ram: 6, storage: 128, year: 2023, refreshRate: 60, camera: 50, chipset: "MediaTek Helio G85", battery: 5000, image: "https://via.placeholder.com/150" },
+        ];
+
+        // Ana uygulama bileşeni
+        function App() {
+            const [products, setProducts] = useState(initialProducts);
+            const [cart, setCart] = useState([]);
+            const [filters, setFilters] = useState({
+                brands: [],
+                priceRanges: [],
+                rams: [],
+                storages: [],
+                years: [],
+                refreshRates: [],
+                cameras: [],
+                chipsets: [],
+                batteries: [],
+            });
+
+            // Filtreleme fonksiyonu
+            const applyFilters = () => {
+                let filtered = initialProducts;
+
+                if (filters.brands.length > 0) {
+                    filtered = filtered.filter((product) => filters.brands.includes(product.brand));
+                }
+
+                if (filters.priceRanges.length > 0) {
+                    filtered = filtered.filter((product) => {
+                        return filters.priceRanges.some((range) => {
+                            if (range === "0-10000") return product.price <= 10000;
+                            if (range === "10000-20000") return product.price > 10000 && product.price <= 20000;
+                            if (range === "20000+") return product.price > 20000;
+                            return false;
+                        });
+                    });
+                }
+
+                if (filters.rams.length > 0) {
+                    filtered = filtered.filter((product) => filters.rams.includes(product.ram.toString()));
+                }
+
+                if (filters.storages.length > 0) {
+                    filtered = filtered.filter((product) => filters.storages.includes(product.storage.toString()));
+                }
+
+                if (filters.years.length > 0) {
+                    filtered = filtered.filter((product) => filters.years.includes(product.year.toString()));
+                }
+
+                if (filters.refreshRates.length > 0) {
+                    filtered = filtered.filter((product) => filters.refreshRates.includes(product.refreshRate.toString()));
+                }
+
+                if (filters.cameras.length > 0) {
+                    filtered = filtered.filter((product) => filters.cameras.includes(product.camera.toString()));
+                }
+
+                if (filters.chipsets.length > 0) {
+                    filtered = filtered.filter((product) => filters.chipsets.includes(product.chipset));
+                }
+
+                if (filters.batteries.length > 0) {
+                    filtered = filtered.filter((product) => {
+                        return filters.batteries.some((range) => {
+                            if (range === "3000-4000mAh") return product.battery >= 3000 && product.battery <= 4000;
+                            if (range === "4000-5000mAh") return product.battery > 4000 && product.battery <= 5000;
+                            if (range === "5000+mAh") return product.battery > 5000;
+                            return false;
+                        });
+                    });
+                }
+
+                setProducts(filtered);
+            };
+
+            // Filtre değiştiğinde filtreleme
+            useEffect(() => {
+                applyFilters();
+            }, [filters]);
+
+            // Checkbox değişimlerini yönetme
+            const handleFilterChange = (type, value) => {
+                setFilters((prev) => {
+                    const newFilters = { ...prev };
+                    if (newFilters[type].includes(value)) {
+                        newFilters[type] = newFilters[type].filter((item) => item !== value);
+                    } else {
+                        newFilters[type] = [...newFilters[type], value];
+                    }
+                    return newFilters;
+                });
+            };
+
+            // Sepete ekleme
+            const addToCart = (product) => {
+                setCart([...cart, product]);
+                alert(`${product.name} sepete eklendi!`);
+            };
+
+            // Sepetten silme
+            const removeFromCart = (index) => {
+                setCart(cart.filter((_, i) => i !== index));
+                alert("Ürün sepetten kaldırıldı!");
+            };
+
+            return (
+                <div className="container mx-auto p-4 flex">
+                    {/* Filtre Paneli */}
+                    <div className="w-1/4 pr-4">
+                        <h2 className="text-xl font-bold mb-4">Filtreler</h2>
+                        <div className="filter-panel">
+                            <details className="mb-4">
+                                <summary className="cursor-pointer">Marka</summary>
+                                {["Oppo", "Huawei", "Honor", "realme", "Reeder"].map((brand) => (
+                                    <div key={brand} className="flex items-center ml-2">
+                                        <input
+                                            type="checkbox"
+                                            id={brand}
+                                            value={brand}
+                                            onChange={() => handleFilterChange("brands", brand)}
+                                            className="mr-2"
+                                        />
+                                        <label htmlFor={brand}>{brand}</label>
+                                    </div>
+                                ))}
+                            </details>
+                            <details className="mb-4">
+                                <summary className="cursor-pointer">Fiyat Aralığı</summary>
+                                {["0-10000", "10000-20000", "20000+"].map((range) => (
+                                    <div key={range} className="flex items-center ml-2">
+                                        <input
+                                            type="checkbox"
+                                            id={range}
+                                            value={range}
+                                            onChange={() => handleFilterChange("priceRanges", range)}
+                                            className="mr-2"
+                                        />
+                                        <label htmlFor={range}>
+                                            {range === "0-10000" && "0 - 10.000 TL"}
+                                            {range === "10000-20000" && "10.000 - 20.000 TL"}
+                                            {range === "20000+" && "20.000 TL ve üzeri"}
+                                        </label>
+                                    </div>
+                                ))}
+                            </details>
+                            <details className="mb-4">
+                                <summary className="cursor-pointer">Bellek (RAM)</summary>
+                                {["3", "4", "6", "8", "12"].map((ram) => (
+                                    <div key={ram} className="flex items-center ml-2">
+                                        <input
+                                            type="checkbox"
+                                            id={`ram-${ram}`}
+                                            value={ram}
+                                            onChange={() => handleFilterChange("rams", ram)}
+                                            className="mr-2"
+                                        />
+                                        <label htmlFor={`ram-${ram}`}>{ram} GB</label>
+                                    </div>
+                                ))}
+                            </details>
+                            <details className="mb-4">
+                                <summary className="cursor-pointer">Dahili Depolama</summary>
+                                {["32", "64", "128", "256", "512"].map((storage) => (
+                                    <div key={storage} className="flex items-center ml-2">
+                                        <input
+                                            type="checkbox"
+                                            id={`storage-${storage}`}
+                                            value={storage}
+                                            onChange={() => handleFilterChange("storages", storage)}
+                                            className="mr-2"
+                                        />
+                                        <label htmlFor={`storage-${storage}`}>{storage} GB</label>
+                                    </div>
+                                ))}
+                            </details>
+                            <details className="mb-4">
+                                <summary className="cursor-pointer">Çıkış Yılı</summary>
+                                {["2021", "2022", "2023"].map((year) => (
+                                    <div key={year} className="flex items-center ml-2">
+                                        <input
+                                            type="checkbox"
+                                            id={`year-${year}`}
+                                            value={year}
+                                            onChange={() => handleFilterChange("years", year)}
+                                            className="mr-2"
+                                        />
+                                        <label htmlFor={`year-${year}`}>{year}</label>
+                                    </div>
+                                ))}
+                            </details>
+                            <details className="mb-4">
+                                <summary className="cursor-pointer">Ekran Yenileme Hızı</summary>
+                                {["60", "90", "120", "144"].map((rate) => (
+                                    <div key={rate} className="flex items-center ml-2">
+                                        <input
+                                            type="checkbox"
+                                            id={`rate-${rate}`}
+                                            value={rate}
+                                            onChange={() => handleFilterChange("refreshRates", rate)}
+                                            className="mr-2"
+                                        />
+                                        <label htmlFor={`rate-${rate}`}>{rate} Hz</label>
+                                    </div>
+                                ))}
+                            </details>
+                            <details className="mb-4">
+                                <summary className="cursor-pointer">Kamera Çözünürlüğü</summary>
+                                {["8", "13", "16", "48", "50", "54", "64", "100", "200"].map((camera) => (
+                                    <div key={camera} className="flex items-center ml-2">
+                                        <input
+                                            type="checkbox"
+                                            id={`camera-${camera}`}
+                                            value={camera}
+                                            onChange={() => handleFilterChange("cameras", camera)}
+                                            className="mr-2"
+                                        />
+                                        <label htmlFor={`camera-${camera}`}>{camera} MP</label>
+                                    </div>
+                                ))}
+                            </details>
+                            <details className="mb-4">
+                                <summary className="cursor-pointer">Yonga Seti</summary>
+                                {[
+                                    "Snapdragon 8 Gen 1",
+                                    "Snapdragon 8+ Gen 1",
+                                    "Snapdragon 8 Gen 2",
+                                    "Snapdragon 778G",
+                                    "Snapdragon 778G+",
+                                    "Snapdragon 695",
+                                    "Snapdragon 680",
+                                    "Snapdragon 7 Gen 1",
+                                    "MediaTek Dimensity 1300",
+                                    "MediaTek Dimensity 7050",
+                                    "MediaTek Dimensity 6020",
+                                    "MediaTek Helio G88",
+                                    "MediaTek Helio G85",
+                                    "MediaTek Helio G35",
+                                    "MediaTek Helio A22",
+                                    "MediaTek Helio G37",
+                                    "MediaTek MT6739",
+                                ].map((chipset) => (
+                                    <div key={chipset} className="flex items-center ml-2">
+                                        <input
+                                            type="checkbox"
+                                            id={`chipset-${chipset}`}
+                                            value={chipset}
+                                            onChange={() => handleFilterChange("chipsets", chipset)}
+                                            className="mr-2"
+                                        />
+                                        <label htmlFor={`chipset-${chipset}`}>{chipset}</label>
+                                    </div>
+                                ))}
+                            </details>
+                            <details className="mb-4">
+                                <summary className="cursor-pointer">Batarya Kapasitesi</summary>
+                                {["3000-4000mAh", "4000-5000mAh", "5000+mAh"].map((battery) => (
+                                    <div key={battery} className="flex items-center ml-2">
+                                        <input
+                                            type="checkbox"
+                                            id={`battery-${battery}`}
+                                            value={battery}
+                                            onChange={() => handleFilterChange("batteries", battery)}
+                                            className="mr-2"
+                                        />
+                                        <label htmlFor={`battery-${battery}`}>
+                                            {battery === "3000-4000mAh" && "3000 - 4000 mAh"}
+                                            {battery === "4000-5000mAh" && "4000 - 5000 mAh"}
+                                            {battery === "5000+mAh" && "5000 mAh ve üzeri"}
+                                        </label>
+                                    </div>
+                                ))}
+                            </details>
+                        </div>
+                    </div>
+
+                    {/* Ürünler ve Sepet */}
+                    <div className="w-3/4">
+                        <h1 className="text-3xl font-bold mb-6">Telefonlar</h1>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {products.length === 0 ? (
+                                <p>Seçilen kriterlere uygun ürün bulunamadı.</p>
+                            ) : (
+                                products.map((product) => (
+                                    <div key={product.id} className="product-card">
+                                        <img src={product.image} alt={product.name} className="w-full h-40 object-cover mb-2 rounded" />
+                                        <h2>{product.name}</h2>
+                                        <p>RAM: {product.ram} GB</p>
+                                        <p>Depolama: {product.storage} GB</p>
+                                        <p>Çıkış Yılı: {product.year}</p>
+                                        <p>Ekran Yenileme: {product.refreshRate} Hz</p>
+                                        <p>Kamera: {product.camera} MP</p>
+                                        <p>Yonga Seti: {product.chipset}</p>
+                                        <p>Batarya: {product.battery} mAh</p>
+                                        <p className="price">{product.price} TL</p>
+                                        <button
+                                            onClick={() => addToCart(product)}
+                                            className="add-to-cart-btn"
+                                        >
+                                            Sepete Ekle
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        {/* Sepet Özeti */}
+                        <div className="mt-8">
+                            <h2 className="text-2xl font-bold">Sepet</h2>
+                            {cart.length === 0 ? (
+                                <p>Sepetiniz boş.</p>
+                            ) : (
+                                <ul>
+                                    {cart.map((item, index) => (
+                                        <li key={index} className="cart-item">
+                                            <span>{item.name} - {item.price} TL</span>
+                                            <button
+                                                onClick={() => removeFromCart(index)}
+                                                className="remove-btn"
+                                            >
+                                                Sil
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Uygulamayı render etme (React 18 uyumlu)
+        const root = createRoot(document.getElementById("root"));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
